@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>健康状态与心路分享社区 ✧</title>
+    <title>用药记录与心得分享社区 ✧</title>
     <style>
         :root {
             /* 🎨 已降低饱和度的复古边框颜色 (柔和的烟熏紫/莫兰迪紫) */
@@ -17,7 +17,6 @@
             
             --bubble-od: rgba(255, 182, 193, 0.45);     
             --bubble-common: rgba(216, 191, 216, 0.45); 
-            --bubble-mood: rgba(182, 227, 255, 0.45); 
             
             --text-color: #3b3a4a;       
             --btn-pink: rgba(220, 174, 230, 0.6);       
@@ -126,13 +125,6 @@
             background: transparent;
         }
 
-        /* 日常心情记录框内衬 */
-        #mini-mood-box {
-            border: 2px solid var(--win-border-inner);
-            padding: 6px;
-            border-radius: 4px;
-            background: rgba(255, 255, 255, 0.2);
-        }
 
         /* 社区选项卡 */
         .trip-nav-bar { display: flex; border-bottom: 4px solid var(--win-border-inner); background: rgba(255, 255, 255, 0.2); flex-shrink: 0; }
@@ -152,7 +144,6 @@
         }
         .bubble-od { background: var(--bubble-od); }
         .bubble-common { background: var(--bubble-common); }
-        .bubble-mood { background: var(--bubble-mood); }
         .bubble-archived { opacity: 0.8; filter: grayscale(0.1); }
         .archived-stamp {
             display: inline-block; font-size: 13px; color: #b55252; font-weight: bold; border: 2px dashed #b55252;
@@ -187,7 +178,6 @@
         input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 5px; background: linear-gradient(90deg, #b28cf6, #ffc3e7, #fff0aa); border-radius: 3px; border: 1px solid var(--win-border-inner); }
         /* 库存管理滑条采用蓝绿色渐变 */
         #stock-slider::-webkit-slider-runnable-track { background: linear-gradient(90deg, #ff9a9e, #a8e6cf, #88d8b0); }
-        .mini-mood-log { font-size: 11px; border-bottom: 1px dashed var(--win-border-inner); padding: 6px 0; display: flex; flex-direction: column; gap: 3px; flex-shrink: 0; background: rgba(255, 255, 255, 0.3); padding: 4px; border-radius: 4px; margin-bottom: 4px; }
 
                 /* 📚 历史记录气泡样式（从上到下依次排列） */
         .memo-log {
@@ -256,10 +246,6 @@
                 .memo-log-time { color: var(--win-border-inner); font-weight: bold; margin-bottom: 4px; }
         .memo-log-content { white-space: pre-wrap; word-break: break-word; font-size: 11px; color: var(--text-color); margin-top: 4px; }
 
-        .music-control-btn {
-            flex: 1; height: 22px; background: transparent; border: none; outline: none; cursor: pointer;
-            background-repeat: no-repeat; background-position: center; background-size: contain;
-        }
 
         .retro-alert-overlay {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
@@ -325,13 +311,10 @@
             /* 窗口从上到下依次排列 */
             #win-status { order: 1; }
             #win-log-input { order: 2; }
-            #win-mood-tracker { order: 3; }
-            #win-mood-logs { order: 4; }
-            #win-memo { order: 5; }
-            #win-main-feed { order: 6; }
-            #win-music { order: 7; }
-            #win-od-stats { order: 8; }
-            #win-plans { order: 9; }
+            #win-memo { order: 3; }
+            #win-main-feed { order: 4; }
+            #win-od-stats { order: 5; }
+            #win-plans { order: 6; }
 
             /* 内部滚动区域：给 memo 框与 trip(主记录)框设定更高的固定高度，
                使记录很多时在框内部上下滑动，而不把整个页面无限加长；宽度保持不变 */
@@ -344,8 +327,6 @@
             #win-main-feed .window-body { max-height: none; min-height: 0; }
             #feed-box { max-height: 74vh; overflow-y: auto; }
 
-            #win-mood-logs .window-body { max-height: 50vh; }
-            #mini-mood-box { max-height: 30vh; overflow-y: auto; }
         }
 
         /* ==========================================
@@ -379,16 +360,12 @@
 
             #win-status { order: 1 !important; }       
             #win-log-input { order: 2 !important; }   
-            #win-mood-tracker { order: 3 !important; }
-            #win-mood-logs { order: 4 !important; }   
-            #win-memo { order: 5 !important; }        
-            #win-main-feed { order: 6 !important; }   
-            #win-music { order: 7 !important; }       
-            #win-od-stats { order: 8 !important; }
-            #win-plans { order: 9 !important; }
+            #win-memo { order: 3 !important; }        
+            #win-main-feed { order: 4 !important; }   
+            #win-od-stats { order: 5 !important; }
+            #win-plans { order: 6 !important; }
 
             #feed-box { max-height: 380px !important; overflow-y: auto !important; }
-            #mini-mood-box { max-height: 200px !important; overflow-y: auto !important; }
             
             .retro-alert-overlay {
                 position: fixed !important;
@@ -475,38 +452,6 @@
         <div class="retro-bottom-bar"><div class="bottom-bar-block"></div><div class="bottom-bar-dot"></div></div>
     </div>
 
-    <div class="retro-window" id="win-mood-tracker">
-        <div class="retro-title-bar drag-handle">
-            <div style="display:flex; align-items:center;"><span>MOOD_TRACKER.EXE 💖</span></div>
-            <div class="title-controls"><div class="retro-btn">_</div><div class="retro-btn">X</div></div>
-        </div>
-        <div class="window-body">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span style="font-size: 12px; font-weight: bold; color: var(--win-border-inner);">当下心情值：</span>
-                <span id="mood-emoji-display" style="font-size: 18px;">😐</span>
-            </div>
-            <input type="range" id="mood-slider" min="1" max="100" value="50">
-                        <div class="form-group" style="flex-direction: row; align-items: center; justify-content: space-between; margin-top: 2px;">
-                <button class="retro-btn" id="record-mood-btn" style="width: 45px; height: 22px; background: var(--win-title-bg);">记录!</button>
-            </div>
-        </div>
-        <div class="retro-bottom-bar"><div class="bottom-bar-block"></div><div class="bottom-bar-dot"></div></div>
-    </div>
-
-    <div class="retro-window" id="win-mood-logs">
-        <div class="retro-title-bar drag-handle">
-            <div style="display:flex; align-items:center;"><span>MOOD_LOGS 💭</span></div>
-            <div class="title-controls"><div class="retro-btn">_</div><div class="retro-btn">X</div></div>
-        </div>
-        <div class="window-body">
-            <div style="font-size: 12px; font-weight: bold; color: var(--win-border-inner); flex-shrink: 0; margin-bottom: 2px;">日常心路历程：</div>
-            <div class="feed-container" id="mini-mood-box">
-                <div style="text-align:center; padding-top:20px; color:#666; font-size:11px; background: rgba(255,255,255,0.2); border-radius:4px;">暂无日常情绪记录哦~</div>
-            </div>
-        </div>
-        <div class="retro-bottom-bar"><div class="bottom-bar-block"></div><div class="bottom-bar-dot"></div></div>
-    </div>
-
     <div class="retro-window" id="win-memo">
         <div class="retro-title-bar drag-handle">
             <div style="display:flex; align-items:center;"><span>MEMO.TXT 📌</span></div>
@@ -539,41 +484,20 @@
 
     <div class="retro-window" id="win-main-feed">
         <div class="retro-title-bar drag-handle">
-            <div style="display:flex; align-items:center;"><span>健康状态与心路分享社区 ✧.txt</span></div>
+            <div style="display:flex; align-items:center;"><span>用药记录与心得分享社区 ✧.txt</span></div>
             <div class="title-controls"><div class="retro-btn">_</div><div class="retro-btn">□</div><div class="retro-btn">X</div></div>
         </div>
         <div class="trip-nav-bar">
-            <div class="trip-tab active-tab" id="tab-private" onclick="switchTab('private')">🔒 私人 Trip 记录</div>
+            <div class="trip-tab active-tab" id="tab-private" onclick="switchTab('private')">🔒 我的用药记录</div>
             <div class="trip-tab" id="tab-public" onclick="switchTab('public')">🌐 公开药物记录区</div>
         </div>
         <div class="window-body">
             <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--win-border-inner); padding-bottom: 6px; flex-shrink: 0; z-index: 2;">
-                <span style="font-size: 13px; font-weight: bold; color: var(--win-border-inner);" id="feed-panel-title">飞行状态控制盘 🛸</span>
-                <button class="retro-btn" id="end-trip-btn" style="width: auto; padding: 0 10px; height: 22px; background: rgba(255, 195, 231, 0.6); font-size: 11px;">🛬 降落 / 封存归档</button>
+                <span style="font-size: 13px; font-weight: bold; color: var(--win-border-inner);" id="feed-panel-title">我的用药记录时间线</span>
+                <button class="retro-btn" id="end-trip-btn" style="width: auto; padding: 0 10px; height: 22px; background: rgba(255, 195, 231, 0.6); font-size: 11px;">📦 封存归档</button>
             </div>
             <div class="feed-container" id="feed-box" style="z-index: 2;">
                 </div>
-        </div>
-        <div class="retro-bottom-bar"><div class="bottom-bar-block"></div><div class="bottom-bar-dot"></div></div>
-    </div>
-
-    <div class="retro-window" id="win-music">
-        <div class="retro-title-bar drag-handle">
-            <div style="display:flex; align-items:center;"><span>BGM_PLAYER.EXE 🎶</span></div>
-            <div class="title-controls"><div class="retro-btn">_</div><div class="retro-btn">X</div></div>
-        </div>
-        <div class="window-body" style="flex-direction: row; align-items: center; gap: 10px; padding: 8px 12px;">
-            <div style="width: 32px; height: 32px; background: rgba(255,255,255,0.4); border: 2px solid var(--win-border-inner); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                <div style="width: 8px; height: 8px; background: var(--win-title-bg); border-radius: 50%; border: 1px solid var(--win-border-inner);"></div>
-            </div>
-            <div style="flex-grow: 1;">
-                <div style="font-size: 11px; font-weight: bold; color: var(--win-border-inner);">INTERNET_YAMERO.mp3</div>
-                <div style="display: flex; gap: 6px; margin-top: 4px; height: 24px;">
-                    <button class="music-control-btn" style="background-image: url('a3f4510470e94e75ffde0a30c30ea781.png');"></button>
-                    <button class="music-control-btn" style="background-image: url('f74929e568cf6a5d172a3a7769ce172d.png');"></button>
-                    <button class="music-control-btn" style="background-image: url('66aa9df7cb36586d6efdb37db955b204.png');"></button>
-                </div>
-            </div>
         </div>
         <div class="retro-bottom-bar"><div class="bottom-bar-block"></div><div class="bottom-bar-dot"></div></div>
     </div>
@@ -584,7 +508,7 @@
             <div class="title-controls"><div class="retro-btn">_</div><div class="retro-btn">X</div></div>
         </div>
         <div class="window-body">
-            <div style="font-size: 12px; font-weight: bold; color: #b55252; flex-shrink: 0;">🚨 过量用药(OD)数据看板</div>
+            <div style="font-size: 12px; font-weight: bold; color: #b55252; flex-shrink: 0;">🚨 剂量风险预警看板</div>
             <div style="font-size: 11px; color: #666; flex-shrink: 0;">今日日期：<strong id="od-today">-</strong></div>
             <div id="od-stats-body" style="font-size: 11px; color: var(--win-border-inner);">
                 <div style="color:#999;">正在加载统计...</div>
@@ -733,7 +657,6 @@
                 // ======== 📦 数据容器（改由数据库驱动） ========
                 let memoLocalData = [];   // 备忘录列表（来自 /api/memos）
                 let recordDatabase = [];  // 用药记录（来自 /api/medications）
-                let moodDatabase = [];    // 心情记录（来自 /api/moods）
                 let medStockDatabase = {};// 药品库存映射 {药名: 数量}（来自 /api/inventory）
 
                 let currentTab = 'private';
@@ -742,11 +665,8 @@
                 let publicRecordsCache = []; // 公开记录缓存（来自 /medications/public）
 
         const feedBox = document.getElementById('feed-box');
-        const miniMoodBox = document.getElementById('mini-mood-box');
         const priorityAlert = document.getElementById('priority-alert');
         const timeElapsedSpan = document.getElementById('time-elapsed');
-        const moodSlider = document.getElementById('mood-slider');
-        const moodEmojiDisplay = document.getElementById('mood-emoji-display');
         const memoInput = document.getElementById('memo-input');
         const memoHistoryBox = document.getElementById('memo-history-box');
 
@@ -758,20 +678,6 @@
             request('GET', '/memos?userId=' + CURRENT_USER_ID, null, function(list) {
                 memoLocalData = list || [];
                 renderMemoHistory();
-            });
-        }
-
-        function fetchMoodsFromServer() {
-            request('GET', '/moods?userId=' + CURRENT_USER_ID, null, function(list) {
-                // 把后端字段转成前端渲染需要的字段（time / emoji / val）
-                moodDatabase = (list || []).map(function(m) {
-                    return {
-                        time: m.recordedAt ? m.recordedAt.replace('T', ' ').slice(0, 16) : '',
-                        emoji: m.moodEmoji,
-                        val: m.moodValue
-                    };
-                });
-                renderMiniMoods();
             });
         }
 
@@ -811,7 +717,6 @@
         // 统一的初始加载入口（页面打开时调用）
         function loadAllDataFromServer() {
             fetchMemosFromServer();
-            fetchMoodsFromServer();
             fetchMedicationsFromServer();
             fetchMedicinesFromServer();
             refreshOdStats();
@@ -1099,7 +1004,7 @@
 
             if (tabName === 'private') {
                 document.getElementById('tab-private').classList.add('active-tab');
-                panelTitle.textContent = "飞行状态控制盘 🛸";
+                panelTitle.textContent = "我的用药记录时间线";
                 endTripBtn.style.display = "block";
                 renderFeed(); // 渲染本地（当前用户）记录
             } else {
@@ -1130,10 +1035,9 @@
                 let isMedShakingActive = false; // 记录药物引起的震颤状态是否处于两分钟有效期内
 
                 function refreshVisualState() {
-                    const moodVal = parseInt(moodSlider.value);
             
-                    // 只要心情滑块移动到 < 30 的位置，或者处于药物发作的2分钟内，就开启视觉特效
-                    if (moodVal < 30 || isMedShakingActive) {
+                    // 处于剂量风险（超量）预警的 2 分钟内，开启视觉特效
+                    if (isMedShakingActive) {
                         document.body.classList.add('psychedelic-mode');
                         document.querySelectorAll('.retro-window').forEach(win => win.classList.add('all-box-shake'));
                     } else {
@@ -1142,17 +1046,6 @@
                     }
                 }
 
-                // 💡 心情监测：移动到位置立刻触发震颤 (不需要点击任何按键)
-                moodSlider.addEventListener('input', (e) => {
-                    const val = e.target.value;
-                    if(val < 20) moodEmojiDisplay.textContent = '😭';
-                    else if(val < 40) moodEmojiDisplay.textContent = '😔';
-                    else if(val < 60) moodEmojiDisplay.textContent = '😐';
-                    else if(val < 80) moodEmojiDisplay.textContent = '🥰';
-                    else moodEmojiDisplay.textContent = '🤩';
-            
-                    refreshVisualState(); // 移动时即刻触发
-                });
 
                                 // ======== ⏰ 时间输入：年月日时分自行填写 ========
         function getSelectedDateTime() {
@@ -1184,60 +1077,36 @@
                 }
             }
             renderFeed();
-            renderMiniMoods();
         }
 
         function renderFeed() {
-            feedBox.innerHTML = '';
+            feedBox.innerHTML = ""
             // 私人 Tab 显示当前用户记录；公开 Tab 显示后端拉取的公开记录
-            let filteredData = (currentTab === 'private') ? recordDatabase : publicRecordsCache;
-
+            let filteredData = (currentTab === "private") ? recordDatabase : publicRecordsCache;
             if (filteredData.length === 0) {
                 feedBox.innerHTML = `<div style="text-align:center; padding-top:40px; color:#5b657e; font-size:13px;">空空如也哦 🎈</div>`;
                 return;
             }
-
             filteredData.forEach(item => {
-                const bubble = document.createElement('div');
-                let extraClass = item.archived ? 'bubble-archived' : '';
+                const bubble = document.createElement("div");
+                let extraClass = item.archived ? "bubble-archived" : "";
                 const userTag = item.user || CURRENT_NICKNAME;
-                const privacyTag = item.privacy === 'public' ? '🌐 公开' : '🔒 私密';
-                
+                const privacyTag = item.privacy === "public" ? "🌐 公开" : "🔒 私密";
                 let contentHTML = (item.archived || userTag !== CURRENT_NICKNAME)
-                    ? `<div class="locked-text">${item.thoughts || '这个小伙伴没有写下详细心得描述~'}</div>${item.archived ? `<div class="archived-stamp">已封存 🛬 历时 ${item.duration || '0'} 小时</div>` : ''}`
+                    ? `<div class="locked-text">${item.thoughts || "这个小伙伴没有写下详细心得描述~"}</div>${item.archived ? `<div class="archived-stamp">已封存 🛬 历时 ${item.duration || "0"} 小时</div>` : ""}`
                     : `<textarea class="bubble-thoughts-input" placeholder="为这次重要的记录写下详细的描述吧..." oninput="updateThoughts(${item.id}, this.value)">${item.thoughts}</textarea>`;
-
-                                if (item.isMoodOnly) {
-                    bubble.className = `bubble-card bubble-mood ${extraClass}`;
-                    bubble.innerHTML = `<div class="bubble-meta"><span>👤 ${userTag}</span><span>🕒 ${item.startTime.replace('T', ' ')}</span><span>心情: ${item.moodEmoji} (${item.moodVal}%)</span></div>${contentHTML}`;
-                } else {
-                    const isOd = item.isNormalDose === false;
-                    const doseTag = isOd ? '🚨 OD' : '✓ 正常';
-                    const doseColor = isOd ? 'color:#b55252;' : 'color:#4a8c5a;';
-                    bubble.className = `bubble-card ${isOd ? 'bubble-od' : 'bubble-common'} ${extraClass}`;
-                    bubble.innerHTML = `<div class="bubble-meta"><span>👤 <strong>${userTag}</strong></span><span>💊 <strong>${item.type}</strong></span><span>📦 <strong>${item.pills || 0} 片</strong></span><span>📦 库存 <strong>${item.remain} 片</strong></span><span style="${doseColor}; font-weight:900;">${doseTag}</span><span style="color:var(--win-border-inner);">【${privacyTag}】</span></div>${contentHTML}
-                        <div class="bubble-social" style="margin-top:8px; border-top:1px dashed var(--win-border-inner); padding-top:6px;">
-                            <span class="social-like" style="cursor:pointer; font-size:11px; user-select:none;" data-liked="false" onclick="toggleLike(${item.id}, this)">🤍 赞(<span class="like-count">0</span>)</span>
-                            <span class="social-comment-toggle" style="cursor:pointer; font-size:11px; margin-left:10px; user-select:none;" onclick="toggleCommentBox(${item.id}, this)">💬 评论(<span class="comment-count">0</span>)</span>
-                            <div class="comment-box" style="display:none; margin-top:6px;"></div>
-                        </div>`;
-                }
+                const isOd = item.isNormalDose === false;
+                const doseTag = isOd ? "⚠️ 剂量风险" : "✓ 正常";
+                const doseColor = isOd ? "color:#b55252;" : "color:#4a8c5a;";
+                bubble.className = `bubble-card ${isOd ? "bubble-od" : "bubble-common"} ${extraClass}`;
+                bubble.innerHTML = `<div class="bubble-meta"><span>👤 <strong>${userTag}</strong></span><span>💊 <strong>${item.type}</strong></span><span>📦 <strong>${item.pills || 0} 片</strong></span><span>📦 库存 <strong>${item.remain} 片</strong></span><span style="${doseColor}; font-weight:900;">${doseTag}</span><span style="color:var(--win-border-inner);">【${privacyTag}】</span></div>${contentHTML}
+                    <div class="bubble-social" style="margin-top:8px; border-top:1px dashed var(--win-border-inner); padding-top:6px;">
+                        <span class="social-like" style="cursor:pointer; font-size:11px; user-select:none;" data-liked="false" onclick="toggleLike(${item.id}, this)">🤍 赞(<span class="like-count">0</span>)</span>
+                        <span class="social-comment-toggle" style="cursor:pointer; font-size:11px; margin-left:10px; user-select:none;" onclick="toggleCommentBox(${item.id}, this)">💬 评论(<span class="comment-count">0</span>)</span>
+                        <div class="comment-box" style="display:none; margin-top:6px;"></div>
+                    </div>`;
                 feedBox.appendChild(bubble);
-                if (!item.isMoodOnly) loadSocialForRecord(item.id);
-            });
-        }
-
-        function renderMiniMoods() {
-            miniMoodBox.innerHTML = '';
-            if (moodDatabase.length === 0) {
-                miniMoodBox.innerHTML = '<div style="text-align:center; padding-top:10px; color:#555; font-size:11px; background:rgba(255,255,255,0.2); padding:4px; border-radius:4px;">暂无日常状态记录</div>';
-                return;
-            }
-            moodDatabase.forEach(m => {
-                const log = document.createElement('div');
-                log.className = 'mini-mood-log';
-                log.innerHTML = `<div style="color: var(--win-border-inner); font-weight: bold;">${m.time}</div><div>状态：${m.emoji} (${m.val}%)</div>`;
-                miniMoodBox.appendChild(log);
+                loadSocialForRecord(item.id);
             });
         }
 
@@ -1542,7 +1411,7 @@
                     }, function(savedRecord) {
                         // 转成前端渲染需要的字段（后端返回的是大写枚举，转成小写便于页面判断）
                         recordDatabase.unshift({
-                            id: savedRecord.id, isMoodOnly: false, type: savedRecord.medicineName,
+                            id: savedRecord.id, type: savedRecord.medicineName,
                             startTime: savedRecord.takenAt, remain: stockNum, pills: savedRecord.dosage,
                             isCommon: false,
                             isNormalDose: savedRecord.isNormalDose !== false,
@@ -1572,25 +1441,6 @@
                     });
                 }
 
-                document.getElementById('record-mood-btn').addEventListener('click', () => {
-            // POST 心情记录到后端 /moods
-            request('POST', '/moods', {
-                userId: CURRENT_USER_ID,
-                moodValue: parseInt(moodSlider.value),
-                moodEmoji: moodEmojiDisplay.textContent
-            }, function(savedMood) {
-                // 转成前端渲染字段
-                moodDatabase.unshift({
-                    time: savedMood.recordedAt ? savedMood.recordedAt.replace('T', ' ').slice(0,16) : new Date().toISOString().slice(0,16).replace('T',' '),
-                    emoji: moodEmojiDisplay.textContent,
-                    val: moodSlider.value
-                });
-                updateDashboard();
-                showRetroAlert('SYSTEM 💖', '当前状态数据已保存到数据库！');
-            }, function() {
-                showRetroAlert('ERROR ❌', '心情记录保存失败，请确认后端服务已启动。');
-            });
-        });
 
         // 已改为下滑式流式布局，取消窗口拖拽功能
         // let zIndexCounter = 20;
