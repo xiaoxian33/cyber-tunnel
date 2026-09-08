@@ -15,7 +15,7 @@
             --window-bg: rgba(255, 246, 255, 0.35);    
             --input-bg: rgba(255, 255, 255, 0.35);      
             
-            --bubble-od: rgba(255, 182, 193, 0.45);     
+            --bubble-risk: rgba(255, 182, 193, 0.45);     
             --bubble-common: rgba(216, 191, 216, 0.45); 
             
             --text-color: #3b3a4a;       
@@ -142,7 +142,7 @@
             border: 2px solid var(--win-border-inner); border-radius: 10px; padding: 10px 12px; 
             box-shadow: 2px 2px 0px var(--win-border-inner); position: relative; backdrop-filter: blur(5px); flex-shrink: 0;
         }
-        .bubble-od { background: var(--bubble-od); }
+        .bubble-risk { background: var(--bubble-risk); }
         .bubble-common { background: var(--bubble-common); }
         .bubble-archived { opacity: 0.8; filter: grayscale(0.1); }
         .archived-stamp {
@@ -313,7 +313,7 @@
             #win-log-input { order: 2; }
             #win-memo { order: 3; }
             #win-main-feed { order: 4; }
-            #win-od-stats { order: 5; }
+            #win-risk-stats { order: 5; }
             #win-plans { order: 6; }
 
             /* 内部滚动区域：给 memo 框与 trip(主记录)框设定更高的固定高度，
@@ -362,7 +362,7 @@
             #win-log-input { order: 2 !important; }   
             #win-memo { order: 3 !important; }        
             #win-main-feed { order: 4 !important; }   
-            #win-od-stats { order: 5 !important; }
+            #win-risk-stats { order: 5 !important; }
             #win-plans { order: 6 !important; }
 
             #feed-box { max-height: 380px !important; overflow-y: auto !important; }
@@ -502,18 +502,18 @@
         <div class="retro-bottom-bar"><div class="bottom-bar-block"></div><div class="bottom-bar-dot"></div></div>
     </div>
 
-    <div class="retro-window" id="win-od-stats">
+    <div class="retro-window" id="win-risk-stats">
         <div class="retro-title-bar drag-handle">
-            <div style="display:flex; align-items:center;"><span>OD_OVERVIEW.EXE 📊</span></div>
+            <div style="display:flex; align-items:center;"><span>RISK_OVERVIEW.EXE 📊</span></div>
             <div class="title-controls"><div class="retro-btn">_</div><div class="retro-btn">X</div></div>
         </div>
         <div class="window-body">
             <div style="font-size: 12px; font-weight: bold; color: #b55252; flex-shrink: 0;">🚨 剂量风险预警看板</div>
-            <div style="font-size: 11px; color: #666; flex-shrink: 0;">今日日期：<strong id="od-today">-</strong></div>
-            <div id="od-stats-body" style="font-size: 11px; color: var(--win-border-inner);">
+            <div style="font-size: 11px; color: #666; flex-shrink: 0;">今日日期：<strong id="risk-today">-</strong></div>
+            <div id="risk-stats-body" style="font-size: 11px; color: var(--win-border-inner);">
                 <div style="color:#999;">正在加载统计...</div>
             </div>
-            <button class="submit-button" onclick="refreshOdStats()" style="flex-shrink:0;">↻ 刷新统计</button>
+            <button class="submit-button" onclick="refreshRiskStats()" style="flex-shrink:0;">↻ 刷新统计</button>
         </div>
         <div class="retro-bottom-bar"><div class="bottom-bar-block"></div><div class="bottom-bar-dot"></div></div>
     </div>
@@ -719,7 +719,7 @@
             fetchMemosFromServer();
             fetchMedicationsFromServer();
             fetchMedicinesFromServer();
-            refreshOdStats();
+            refreshRiskStats();
             loadPlans();
         }
         loadAllDataFromServer(); // 启动时从后端拉取全部数据
@@ -1095,10 +1095,10 @@
                 let contentHTML = (item.archived || userTag !== CURRENT_NICKNAME)
                     ? `<div class="locked-text">${item.thoughts || "这个小伙伴没有写下详细心得描述~"}</div>${item.archived ? `<div class="archived-stamp">已封存 🛬 历时 ${item.duration || "0"} 小时</div>` : ""}`
                     : `<textarea class="bubble-thoughts-input" placeholder="为这次重要的记录写下详细的描述吧..." oninput="updateThoughts(${item.id}, this.value)">${item.thoughts}</textarea>`;
-                const isOd = item.isNormalDose === false;
-                const doseTag = isOd ? "⚠️ 剂量风险" : "✓ 正常";
-                const doseColor = isOd ? "color:#b55252;" : "color:#4a8c5a;";
-                bubble.className = `bubble-card ${isOd ? "bubble-od" : "bubble-common"} ${extraClass}`;
+                const isRisk = item.isNormalDose === false;
+                const doseTag = isRisk ? "⚠️ 剂量风险" : "✓ 正常";
+                const doseColor = isRisk ? "color:#b55252;" : "color:#4a8c5a;";
+                bubble.className = `bubble-card ${isRisk ? "bubble-risk" : "bubble-common"} ${extraClass}`;
                 bubble.innerHTML = `<div class="bubble-meta"><span>👤 <strong>${userTag}</strong></span><span>💊 <strong>${item.type}</strong></span><span>📦 <strong>${item.pills || 0} 片</strong></span><span>📦 库存 <strong>${item.remain} 片</strong></span><span style="${doseColor}; font-weight:900;">${doseTag}</span><span style="color:var(--win-border-inner);">【${privacyTag}】</span></div>${contentHTML}
                     <div class="bubble-social" style="margin-top:8px; border-top:1px dashed var(--win-border-inner); padding-top:6px;">
                         <span class="social-like" style="cursor:pointer; font-size:11px; user-select:none;" data-liked="false" onclick="toggleLike(${item.id}, this)">🤍 赞(<span class="like-count">0</span>)</span>
@@ -1230,24 +1230,24 @@
             });
         };
 
-        // ======== 📊 OD 过量用药统计看板 ========
-        function refreshOdStats() {
-            const todayEl = document.getElementById('od-today');
+        // ======== 📊 剂量风险统计看板 ========
+        function refreshRiskStats() {
+            const todayEl = document.getElementById('risk-today');
             if (todayEl) todayEl.textContent = new Date().toLocaleDateString('zh-CN');
-            request('GET', '/medications/stats/od?userId=' + CURRENT_USER_ID, null, function(stats) {
-                const body = document.getElementById('od-stats-body');
+            request('GET', '/medications/stats/risk?userId=' + CURRENT_USER_ID, null, function(stats) {
+                const body = document.getElementById('risk-stats-body');
                 if (!body) return;
-                if (!stats || stats.odDays7 === undefined) { body.innerHTML = '<div style="color:#b55252;">暂无 OD 数据</div>'; return; }
+                if (!stats || stats.riskDays7 === undefined) { body.innerHTML = '<div style="color:#b55252;">暂无风险数据</div>'; return; }
                 body.innerHTML =
-                    '<div class="status-item"><span>近 7 天 OD 次数：</span><strong style="color:#b55252;">' + stats.odDays7 + ' 次</strong></div>' +
-                    '<div class="status-item"><span>近 14 天 OD 次数：</span><strong style="color:#b55252;">' + stats.odDays14 + ' 次</strong></div>' +
-                    '<div class="status-item"><span>近 30 天 OD 次数：</span><strong style="color:#b55252;">' + stats.odDays30 + ' 次</strong></div>' +
-                    '<div class="status-item"><span>本周 OD：</span><strong>' + stats.weekCurrent + ' 次</strong></div>' +
-                    '<div class="status-item"><span>上周 OD：</span><strong>' + stats.weekPrevious + ' 次</strong></div>' +
+                    '<div class="status-item"><span>近 7 天风险次数：</span><strong style="color:#b55252;">' + stats.riskDays7 + ' 次</strong></div>' +
+                    '<div class="status-item"><span>近 14 天风险次数：</span><strong style="color:#b55252;">' + stats.riskDays14 + ' 次</strong></div>' +
+                    '<div class="status-item"><span>近 30 天风险次数：</span><strong style="color:#b55252;">' + stats.riskDays30 + ' 次</strong></div>' +
+                    '<div class="status-item"><span>本周风险：</span><strong>' + stats.weekCurrent + ' 次</strong></div>' +
+                    '<div class="status-item"><span>上周风险：</span><strong>' + stats.weekPrevious + ' 次</strong></div>' +
                     '<div class="status-item" style="border:none;"><span>趋势：</span><strong style="color:var(--win-border-inner);">' + (stats.trend || '') + '</strong></div>' +
                     '<div class="status-item" style="border:none;"><span>连续记录天数：</span><strong>' + (stats.consecutiveDays || 0) + ' 天</strong></div>';
             }, function() {
-                const b = document.getElementById('od-stats-body');
+                const b = document.getElementById('risk-stats-body');
                 if (b) b.innerHTML = '<div style="color:#b55252;">统计加载失败，请确认后端已启动</div>';
             });
         }
@@ -1331,7 +1331,7 @@
                         if (done >= plan.items.length) {
                             showRetroAlert('SUCCESS 💊', '已按「' + plan.planName + '」一键登记全部药物！');
                             fetchMedicationsFromServer();
-                            refreshOdStats();
+                            refreshRiskStats();
                         }
                     });
                 });
@@ -1419,7 +1419,7 @@
                             thoughts: '', archived: savedRecord.archived, user: CURRENT_NICKNAME
                         });
 
-                        // 2. 🟢 过量特效：本次为 OD（isNormalDose=false）触发两分钟全屏震颤
+                        // 2. 🟢 剂量风险特效：isNormalDose=false 时触发两分钟全屏震颤
                         if (isNormalDose === false) {
                             if (medEffectsTimer) clearTimeout(medEffectsTimer);
                             isMedShakingActive = true;

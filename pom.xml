@@ -8,7 +8,7 @@
 		<version>4.0.7</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.overdose</groupId>
+	<groupId>com.cybertunnel</groupId>
 	<artifactId>cyber-tunnel</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name/>

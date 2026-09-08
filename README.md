@@ -16,7 +16,7 @@ Cyber-Tunnel 是一个面向 **需要长期、规律用药的人群（尤其是�
 - 💊 **用药记录（核心）**：记录药品种类、片数、时间、公开/私密设置，沉淀属于自己的用药档案。
 - ✍️ **心得分享**：每条记录都能写下真实感受与反思，形成可回溯的「用药 × 心路」轨迹。
 - 🧩 **用药组合一键登记**：把多种药 + 剂量的常用方案存成模板，需要时一键批量登记。
-- 🚨 **剂量风险预警**：如实标记剂量，系统自动识别**超量（原「过量 OD」）风险**并标红警示，提醒及时关注与调整。
+- 🚨 **剂量风险预警**：如实标记剂量，系统自动识别**超量（原「过量」）风险**并标红警示，提醒及时关注与调整。
 - 📊 **风险数据看板**：近 7 / 14 / 30 天风险次数、本周 vs 上周趋势、连续记录天数，客观看见自己的变化。
 - 📦 **药品库存管理**：记录每种药的剩余片数，避免断药或误服。
 - 🌐 **社区共享流**：私密记录只属于自己；也可以主动公开，与全站伙伴的真诚分享相遇。
@@ -149,7 +149,7 @@ medicine-box-main
 ├─ pom.xml
 ├─ mvnw / mvnw.cmd
 └─ src/main
-   ├─ java/com/overdose/cyber_tunnel
+   ├─ java/com/cybertunnel
    │  ├─ controller/   # 各业务 REST 控制器
    │  ├─ service/      # 业务逻辑层
    │  ├─ model/        # JPA 实体
@@ -169,7 +169,7 @@ medicine-box-main
 | `GET /api/users` | 用户列表（昵称映射用） |
 | `GET/POST/PATCH/DELETE /api/medications...` | 用药记录增删改查、心得更新、归档 |
 | `GET /api/medications/public` | 公开记录流 |
-| `GET /api/medications/stats/od` | 剂量风险看板统计 |
+| `GET /api/medications/stats/risk` | 剂量风险看板统计 |
 | `POST /api/medications/archive` | 一键归档 |
 | `GET/POST/DELETE /api/plans...` | 用药方案管理 |
 | `GET/POST /api/memos`, `DELETE /api/memos` | 备忘录管理 |
