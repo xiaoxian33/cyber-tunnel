@@ -54,14 +54,28 @@ Cyber-Tunnel 是一个面向 **需要长期、规律用药的人群（尤其是�
 CREATE DATABASE cyber_tunnel_db;
 ```
 
-### 2. 修改数据库连接配置
+### 2. 配置数据库连接
 
-编辑 `src/main/resources/application.properties`，把用户名密码改成你自己的：
+配置默认从 `src/main/resources/application.properties` 读取，支持环境变量覆盖（推荐，避免把密码提交到 GitHub）：
 
 ```properties
-spring.datasource.url=jdbc:mysql://localhost:3306/cyber_tunnel_db
-spring.datasource.username=root
-spring.datasource.password=你的密码
+# 若设置了环境变量则优先使用；否则使用默认值（本地开发）
+spring.datasource.url=${DB_URL:jdbc:mysql://localhost:3306/cyber_tunnel_db}
+spring.datasource.username=${DB_USERNAME:root}
+spring.datasource.password=${DB_PASSWORD:你的密码}
+```
+
+方式一：直接改 `application.properties` 中的默认值（本地开发最快）。
+
+方式二：用环境变量（部署时推荐）：
+
+```bash
+# Windows PowerShell
+$env:DB_USERNAME="root"
+$env:DB_PASSWORD="你的密码"
+
+# macOS / Linux
+export DB_USERNAME=root DB_PASSWORD=你的密码
 ```
 
 ### 3. 启动后端
