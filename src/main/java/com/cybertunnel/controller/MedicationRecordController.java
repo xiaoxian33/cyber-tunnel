@@ -1,5 +1,6 @@
 package com.cybertunnel.controller;
 
+import com.cybertunnel.config.CurrentUser;
 import com.cybertunnel.model.MedicationRecord;
 import com.cybertunnel.service.MedicationRecordService;
 import org.springframework.http.HttpStatus;
@@ -20,10 +21,10 @@ public class MedicationRecordController {
         this.service = service;
     }
 
-    /** GET /api/medications?userId=1 — 获取用户所有服药记录 */
+    /** GET /api/medications — 获取当前登录用户的所有服药记录（身份来自 token，不再信前端参数） */
     @GetMapping
-    public ResponseEntity<List<MedicationRecord>> listByUser(@RequestParam(defaultValue = "1") Long userId) {
-        return ResponseEntity.ok(service.findByUserId(userId));
+    public ResponseEntity<List<MedicationRecord>> listMine() {
+        return ResponseEntity.ok(service.findByUserId(CurrentUser.id()));
     }
 
     /** GET /api/medications/public — 获取所有公开记录 */
@@ -32,20 +33,20 @@ public class MedicationRecordController {
         return ResponseEntity.ok(service.findPublic());
     }
 
-    /** GET /api/medications/stats/risk?userId=1 — 剂量风险统计 */
+    /** GET /api/medications/stats/risk — 当前用户的剂量风险统计 */
     @GetMapping("/stats/risk")
-    public ResponseEntity<?> riskStats(@RequestParam(defaultValue = "1") Long userId) {
-        return ResponseEntity.ok(service.riskStats(userId));
+    public ResponseEntity<?> riskStats() {
+        return ResponseEntity.ok(service.riskStats(CurrentUser.id()));
     }
 
-    /** POST /api/medications — 新增服药记录 */
+    /** POST /api/medications — 新增服药记录（归属自动取当前登录用户） */
     @PostMapping
     public ResponseEntity<MedicationRecord> create(@RequestBody CreateRequest request) {
         if (request.medicineName() == null || request.medicineName().isBlank()) {
             return ResponseEntity.badRequest().build();
         }
         MedicationRecord record = service.create(
-                request.userId() != null ? request.userId() : 1L,
+                CurrentUser.id(),
                 request.medicineName().trim(),
                 request.dosage() != null ? request.dosage() : 1,
                 request.takenAt() != null ? request.takenAt() : LocalDateTime.now(),
@@ -56,31 +57,31 @@ public class MedicationRecordController {
         return ResponseEntity.status(HttpStatus.CREATED).body(record);
     }
 
-    /** PATCH /api/medications/{id}/thoughts — 更新心得 */
+    /** PATCH /api/medications/{id}/thoughts — 更新心得（仅限本人） */
     @PatchMapping("/{id}/thoughts")
     public ResponseEntity<MedicationRecord> updateThoughts(@PathVariable Long id,
                                                             @RequestBody Map<String, String> body) {
         String thoughts = body.getOrDefault("thoughts", "");
-        return service.updateThoughts(id, thoughts)
+        return service.updateThoughts(CurrentUser.id(), id, thoughts)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    /** POST /api/medications/archive?userId=1 — 归档所有未归档记录 */
+    /** POST /api/medications/archive — 归档当前用户所有未归档记录 */
     @PostMapping("/archive")
-    public ResponseEntity<Map<String, Integer>> archiveAll(@RequestParam(defaultValue = "1") Long userId) {
-        int count = service.archiveAll(userId);
+    public ResponseEntity<Map<String, Integer>> archiveAll() {
+        int count = service.archiveAll(CurrentUser.id());
         return ResponseEntity.ok(Map.of("archivedCount", count));
     }
 
-    /** DELETE /api/medications/{id} — 删除记录 */
+    /** DELETE /api/medications/{id} — 删除记录（仅限本人） */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        service.deleteById(id);
+        service.deleteById(CurrentUser.id(), id);
         return ResponseEntity.noContent().build();
     }
 
-    public record CreateRequest(Long userId, String medicineName, Integer dosage,
+    public record CreateRequest(String medicineName, Integer dosage,
                                  LocalDateTime takenAt, Boolean isCommon,
                                  Boolean isNormalDose,
                                  MedicationRecord.Privacy privacy) {}

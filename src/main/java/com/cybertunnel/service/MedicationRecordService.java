@@ -59,10 +59,10 @@ public class MedicationRecordService {
         return repository.save(record);
     }
 
-    /** 更新心得描述 */
+    /** 更新心得描述（仅限本人记录；找不到或不属于该用户则返回空） */
     @Transactional
-    public Optional<MedicationRecord> updateThoughts(Long id, String thoughts) {
-        return repository.findById(id).map(record -> {
+    public Optional<MedicationRecord> updateThoughts(Long userId, Long id, String thoughts) {
+        return repository.findByIdAndUserId(id, userId).map(record -> {
             record.setThoughts(thoughts);
             return repository.save(record);
         });
@@ -82,9 +82,16 @@ public class MedicationRecordService {
         return records.size();
     }
 
-    /** 删除记录（同时清理其评论与点赞） */
+    /**
+     * 删除记录（同时清理其评论与点赞）
+     * 归属校验：只允许删除属于该用户的记录，防止越权删除他人数据
+     */
     @Transactional
-    public void deleteById(Long id) {
+    public void deleteById(Long userId, Long id) {
+        // 不存在或不属于该用户 -> 什么都不做（相当于删除失败）
+        if (repository.findByIdAndUserId(id, userId).isEmpty()) {
+            return;
+        }
         commentRepository.deleteByRecordId(id);
         likeRepository.deleteByRecordId(id);
         repository.deleteById(id);
