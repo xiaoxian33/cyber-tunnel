@@ -630,7 +630,7 @@
                 // 原理：
                 //   fetch(url, {method, headers, body}) 是浏览器内置的 HTTP 客户端。
                 //   - method:  告诉后端要做什么动作（GET读 / POST增 / PATCH改 / DELETE删）
-                //   - headers: 声明发送的是 JSON 数据
+                //   - headers: 声明发送的是 JSON 数据 + 带上登录凭证 token
                 //   - body:    把 JS 对象 JSON.stringify 成字符串随请求发出（仅在增/改时）
                 //   后端处理完会返回 JSON，.then(res=>res.json()) 把它解析回 JS 对象
                 function request(method, path, bodyData, onSuccess, onError) {
@@ -638,12 +638,24 @@
                         method: method,
                         headers: { 'Content-Type': 'application/json' }
                     };
+                    // 🔐 登录后自动带上凭证：Authorization: Bearer <token>
+                    // 后端拦截器凭它确认"你是谁"，不再信任前端传的 userId
+                    const token = currentUser && currentUser.token;
+                    if (token) {
+                        options.headers['Authorization'] = 'Bearer ' + token;
+                    }
                     // 只有增(POST)/改(PATCH/PUT)才需要带 body
                     if (bodyData && (method === 'POST' || method === 'PATCH' || method === 'PUT')) {
                         options.body = JSON.stringify(bodyData);
                     }
                     fetch(API_BASE + path, options)
                         .then(response => {
+                            // 401 = token 无效/过期 → 强制回登录页重新登录
+                            if (response.status === 401) {
+                                localStorage.removeItem('currentUser');
+                                window.location.href = 'login.html';
+                                return null;
+                            }
                             if (response.status === 204) return null; // 删除成功无返回体
                             return response.json();
                         })
@@ -675,14 +687,14 @@
         //   后端按 userId=1 返回该用户的备忘录/用药/心情/库存列表。
 
         function fetchMemosFromServer() {
-            request('GET', '/memos?userId=' + CURRENT_USER_ID, null, function(list) {
+            request('GET', '/memos', null, function(list) {
                 memoLocalData = list || [];
                 renderMemoHistory();
             });
         }
 
         function fetchMedicationsFromServer() {
-            request('GET', '/medications?userId=' + CURRENT_USER_ID, null, function(list) {
+            request('GET', '/medications', null, function(list) {
                 // 把后端数据库字段转成前端渲染需要的老字段（兼容 renderFeed）
                 recordDatabase = (list || []).map(function(rec) {
                     return {
@@ -705,7 +717,7 @@
 
         function fetchMedicinesFromServer() {
             // 后端库存接口在 /api/inventory，字段是 medicineName
-            request('GET', '/inventory?userId=' + CURRENT_USER_ID, null, function(list) {
+            request('GET', '/inventory', null, function(list) {
                 // 把库存列表转成 { 药名: 库存数量 } 的映射
                 medStockDatabase = {};
                 (list || []).forEach(function(med) {
@@ -754,7 +766,6 @@
         // 原理：每次改库存后，用 PUT /api/inventory/{药品名} 把该药品的库存绝对值写回数据库。
         function syncStockToServer(medName, newStock) {
             request('PUT', '/inventory/' + encodeURIComponent(medName), {
-                userId: CURRENT_USER_ID,
                 stock: newStock
             }, function() {});
         }
@@ -962,7 +973,7 @@
                 return;
             }
             // POST 到后端 /memos，成功后拿到后端分配的 id
-            request('POST', '/memos', { userId: CURRENT_USER_ID, content: content }, function(savedMemo) {
+            request('POST', '/memos', { content: content }, function(savedMemo) {
                 memoLocalData.unshift(savedMemo); // 把后端返回的完整记录加进数组（含 id、createdAt）
                 memoInput.value = '';
                 showRetroAlert('SUCCESS 💾', '随手记录已保存到数据库！可以在历史记录里查看。');
@@ -979,7 +990,7 @@
                 return;
             }
             if (confirm('确定要清空所有记录吗？此操作不可恢复！')) {
-                request('DELETE', '/memos?userId=' + CURRENT_USER_ID, null, function() {
+                request('DELETE', '/memos', null, function() {
                     memoLocalData = [];
                     renderMemoHistory();
                     showRetroAlert('SUCCESS 🗑️', '已清空所有记录。');
@@ -1133,7 +1144,7 @@
             if (!bubbleSocial) return;
 
             // 点赞状态
-            request('GET', '/social/like/status?recordId=' + recordId + '&userId=' + CURRENT_USER_ID, null, function(status) {
+            request('GET', '/social/like/status?recordId=' + recordId, null, function(status) {
                 const likeSpan = bubbleSocial.querySelector('.social-like');
                 const countSpan = bubbleSocial.querySelector('.like-count');
                 const liked = status && status.liked;
@@ -1150,7 +1161,7 @@
 
         // 切换点赞
         window.toggleLike = function(recordId, likeSpan) {
-            request('POST', '/social/like', { recordId: recordId, userId: CURRENT_USER_ID }, function(res) {
+            request('POST', '/social/like', { recordId: recordId }, function(res) {
                 const countSpan = likeSpan.querySelector('.like-count');
                 if (res && res.liked) {
                     likeSpan.dataset.liked = 'true';
@@ -1204,7 +1215,7 @@
             const content = (inputEl.value || '').trim();
             if (!content) return;
             request('POST', '/social/comments', {
-                recordId: recordId, userId: CURRENT_USER_ID, nickname: CURRENT_NICKNAME, content: content
+                recordId: recordId, content: content
             }, function() {
                 // 刷新评论区和计数
                 let socialEl = null;
@@ -1234,7 +1245,7 @@
         function refreshRiskStats() {
             const todayEl = document.getElementById('risk-today');
             if (todayEl) todayEl.textContent = new Date().toLocaleDateString('zh-CN');
-            request('GET', '/medications/stats/risk?userId=' + CURRENT_USER_ID, null, function(stats) {
+            request('GET', '/medications/stats/risk', null, function(stats) {
                 const body = document.getElementById('risk-stats-body');
                 if (!body) return;
                 if (!stats || stats.riskDays7 === undefined) { body.innerHTML = '<div style="color:#b55252;">暂无风险数据</div>'; return; }
@@ -1283,7 +1294,7 @@
             const items = collectPlanItems();
             if (!name || items.length === 0) { showRetroAlert('WARNING ⚠️', '请填写方案名称和至少一种药。'); return; }
             const itemsArr = items.map(function(it){ return [it.name, String(it.dose)]; });
-            request('POST', '/plans', { userId: CURRENT_USER_ID, planName: name, note: '', items: itemsArr }, function() {
+            request('POST', '/plans', { planName: name, note: '', items: itemsArr }, function() {
                 showRetroAlert('SUCCESS 💊', '用药方案已保存！');
                 document.getElementById('plan-name').value = '';
                 const editor = document.getElementById('plan-items-editor');
@@ -1295,7 +1306,7 @@
             });
         }
         function loadPlans() {
-            request('GET', '/plans?userId=' + CURRENT_USER_ID, null, function(list) { renderPlans(list || []); });
+            request('GET', '/plans', null, function(list) { renderPlans(list || []); });
         }
         function renderPlans(plans) {
             const box = document.getElementById('plan-list');
@@ -1315,7 +1326,7 @@
         }
         // 一键登记：把方案里的每种药按当前时间各记一条记录
         function applyPlan(planId) {
-            request('GET', '/plans?userId=' + CURRENT_USER_ID, null, function(list) {
+            request('GET', '/plans', null, function(list) {
                 const plan = (list || []).find(function(p){ return p.id == planId; });
                 if (!plan || !plan.items || plan.items.length === 0) { showRetroAlert('INFO 💊', '该方案没有可登记的药物。'); return; }
                 const now = new Date();
@@ -1324,7 +1335,7 @@
                 let done = 0;
                 plan.items.forEach(function(it) {
                     request('POST', '/medications', {
-                        userId: CURRENT_USER_ID, medicineName: it.medicineName, dosage: it.dosage,
+                        medicineName: it.medicineName, dosage: it.dosage,
                         takenAt: timeStr, isCommon: false, isNormalDose: true, privacy: 'PRIVATE'
                     }, function() {
                         done++;
@@ -1339,7 +1350,7 @@
         }
         function clearAllPlans() {
             if (!confirm('确定要清空所有用药方案吗？')) return;
-            request('GET', '/plans?userId=' + CURRENT_USER_ID, null, function(list) {
+            request('GET', '/plans', null, function(list) {
                 (list || []).forEach(function(p){ request('DELETE', '/plans/' + p.id, null, function(){}); });
                 setTimeout(loadPlans, 300);
             });
@@ -1347,7 +1358,7 @@
 
         document.getElementById('end-trip-btn').addEventListener('click', () => {
             // 调用后端 /medications/archive 归档所有未归档记录
-            request('POST', '/medications/archive?userId=' + CURRENT_USER_ID, null, function(res) {
+            request('POST', '/medications/archive', null, function(res) {
                 const archivedCount = (res && res.archivedCount) || 0;
                 if (archivedCount > 0) {
                     showRetroAlert('SUCCESS 🛬', `成功归档！本次封存了私人框里的 ${archivedCount} 条数据喵~`);
@@ -1400,7 +1411,6 @@
                     // 1. POST 到后端 /medications，成功后用后端返回的数据气泡
                     //    注意：后端 privacy 是枚举，值为大写 PRIVATE/PUBLIC；我们统一发大写
                     request('POST', '/medications', {
-                        userId: CURRENT_USER_ID,
                         medicineName: typeInput,
                         dosage: pillsNum,
                         // 后端要求 yyyy-MM-dd'T'HH:mm:ss 格式（含秒），前端表单只有时分，补上 :00
