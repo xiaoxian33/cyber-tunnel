@@ -33,3 +33,10 @@ build/
 .vscode/
 
 run.log
+
+### 运行/日志文件 ###
+_run.log
+_run_err.log
+_ngrok.log
+ngrok-bin/
+
