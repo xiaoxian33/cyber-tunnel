@@ -23,16 +23,16 @@ public class MedicineInventoryService {
         return repository.findByUserId(userId);
     }
 
-    /** 按药品名获取库存 */
+    /** 按用户 + 药品名获取库存（归属校验用） */
     @Transactional(readOnly = true)
-    public Optional<MedicineInventory> findByMedicineName(String medicineName) {
-        return repository.findByMedicineName(medicineName);
+    public Optional<MedicineInventory> findByUserIdAndMedicineName(Long userId, String medicineName) {
+        return repository.findByUserIdAndMedicineName(userId, medicineName);
     }
 
-    /** 设置/更新库存（没有就新建，有就覆盖） */
+    /** 设置/更新库存（没有就新建，有就覆盖；始终限定在当前用户下） */
     @Transactional
     public MedicineInventory setStock(Long userId, String medicineName, Integer stock) {
-        Optional<MedicineInventory> existing = repository.findByMedicineName(medicineName);
+        Optional<MedicineInventory> existing = repository.findByUserIdAndMedicineName(userId, medicineName);
         if (existing.isPresent()) {
             MedicineInventory inv = existing.get();
             inv.setStock(stock);
@@ -44,20 +44,20 @@ public class MedicineInventoryService {
         }
     }
 
-    /** 服用扣减（减库存） */
+    /** 服用扣减（减库存；仅限本人） */
     @Transactional
-    public Optional<MedicineInventory> take(String medicineName, Integer count) {
-        return repository.findByMedicineName(medicineName).map(inv -> {
+    public Optional<MedicineInventory> take(Long userId, String medicineName, Integer count) {
+        return repository.findByUserIdAndMedicineName(userId, medicineName).map(inv -> {
             int newStock = Math.max(0, inv.getStock() - count);
             inv.setStock(newStock);
             return repository.save(inv);
         });
     }
 
-    /** 补货增加（加库存） */
+    /** 补货增加（加库存；仅限本人） */
     @Transactional
-    public Optional<MedicineInventory> add(String medicineName, Integer count) {
-        return repository.findByMedicineName(medicineName).map(inv -> {
+    public Optional<MedicineInventory> add(Long userId, String medicineName, Integer count) {
+        return repository.findByUserIdAndMedicineName(userId, medicineName).map(inv -> {
             inv.setStock(inv.getStock() + count);
             return repository.save(inv);
         });

@@ -24,4 +24,7 @@ public interface MedicineRepository extends JpaRepository<Medicine, Long> {
 
     /** 根据用户ID + 药品名查找（同一个用户不能有两个同名药） */
     Optional<Medicine> findByUserIdAndName(Long userId, String name);
+
+    /** 查询某用户的一种药（归属校验用：防止看/改/删别人的） */
+    Optional<Medicine> findByIdAndUserId(Long id, Long userId);
 }

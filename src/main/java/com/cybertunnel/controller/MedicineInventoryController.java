@@ -1,5 +1,6 @@
 package com.cybertunnel.controller;
 
+import com.cybertunnel.config.CurrentUser;
 import com.cybertunnel.model.MedicineInventory;
 import com.cybertunnel.service.MedicineInventoryService;
 import org.springframework.http.ResponseEntity;
@@ -18,44 +19,43 @@ public class MedicineInventoryController {
         this.service = service;
     }
 
-    /** GET /api/inventory?userId=1 — 获取用户所有库存 */
+    /** GET /api/inventory — 获取当前登录用户的所有库存 */
     @GetMapping
-    public ResponseEntity<List<MedicineInventory>> listByUser(@RequestParam(defaultValue = "1") Long userId) {
-        return ResponseEntity.ok(service.findByUserId(userId));
+    public ResponseEntity<List<MedicineInventory>> listMine() {
+        return ResponseEntity.ok(service.findByUserId(CurrentUser.id()));
     }
 
-    /** GET /api/inventory/{medicineName} — 查询某个药品库存 */
+    /** GET /api/inventory/{medicineName} — 查询当前用户某个药品库存 */
     @GetMapping("/{medicineName}")
     public ResponseEntity<MedicineInventory> getByName(@PathVariable String medicineName) {
-        return service.findByMedicineName(medicineName)
+        return service.findByUserIdAndMedicineName(CurrentUser.id(), medicineName)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    /** PUT /api/inventory/{medicineName} — 设置库存 */
+    /** PUT /api/inventory/{medicineName} — 设置当前用户某药品的库存 */
     @PutMapping("/{medicineName}")
     public ResponseEntity<MedicineInventory> setStock(
             @PathVariable String medicineName,
             @RequestBody Map<String, Object> body) {
-        Long userId = body.get("userId") != null ? Long.valueOf(body.get("userId").toString()) : 1L;
         Integer stock = body.get("stock") != null ? Integer.valueOf(body.get("stock").toString()) : 0;
-        return ResponseEntity.ok(service.setStock(userId, medicineName, stock));
+        return ResponseEntity.ok(service.setStock(CurrentUser.id(), medicineName, stock));
     }
 
-    /** PATCH /api/inventory/{medicineName}/take?count=1 — 服用扣减 */
+    /** PATCH /api/inventory/{medicineName}/take?count=1 — 服用扣减（当前用户） */
     @PatchMapping("/{medicineName}/take")
     public ResponseEntity<MedicineInventory> take(@PathVariable String medicineName,
                                                    @RequestParam(defaultValue = "1") Integer count) {
-        return service.take(medicineName, count)
+        return service.take(CurrentUser.id(), medicineName, count)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    /** PATCH /api/inventory/{medicineName}/add?count=1 — 补货增加 */
+    /** PATCH /api/inventory/{medicineName}/add?count=1 — 补货增加（当前用户） */
     @PatchMapping("/{medicineName}/add")
     public ResponseEntity<MedicineInventory> add(@PathVariable String medicineName,
                                                   @RequestParam(defaultValue = "1") Integer count) {
-        return service.add(medicineName, count)
+        return service.add(CurrentUser.id(), medicineName, count)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }

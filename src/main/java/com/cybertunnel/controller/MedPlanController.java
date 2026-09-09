@@ -1,5 +1,6 @@
 package com.cybertunnel.controller;
 
+import com.cybertunnel.config.CurrentUser;
 import com.cybertunnel.model.MedPlan;
 import com.cybertunnel.service.MedPlanService;
 import org.springframework.http.HttpStatus;
@@ -19,20 +20,17 @@ public class MedPlanController {
         this.service = service;
     }
 
-    /** GET /api/plans?userId=1 — 获取用户的用药方案 */
+    /** GET /api/plans — 获取当前登录用户的用药方案 */
     @GetMapping
-    public ResponseEntity<List<MedPlan>> list(@RequestParam(defaultValue = "1") Long userId) {
-        return ResponseEntity.ok(service.findByUserId(userId));
+    public ResponseEntity<List<MedPlan>> listMine() {
+        return ResponseEntity.ok(service.findByUserId(CurrentUser.id()));
     }
 
-    /**
-     * POST /api/plans — 新建用药方案
-     * 请求体: { "userId":1, "planName":"感冒套餐", "note":"...", "items":[["维生素B1","1"],["感冒灵","2"]] }
-     */
+    /** POST /api/plans — 新建用药方案（归属自动取当前登录用户） */
     @PostMapping
     public ResponseEntity<?> create(@RequestBody CreateRequest request) {
         Optional<MedPlan> plan = service.create(
-                request.userId() != null ? request.userId() : 1L,
+                CurrentUser.id(),
                 request.planName(),
                 request.note(),
                 request.items()
@@ -41,12 +39,13 @@ public class MedPlanController {
                 .orElseGet(() -> ResponseEntity.badRequest().body(java.util.Map.of("error", "方案创建失败：请填写名称并至少添加一种药。")));
     }
 
-    /** DELETE /api/plans/{id} — 删除方案 */
+    /** DELETE /api/plans/{id} — 删除方案（仅限本人） */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        service.deleteById(id);
+        service.deleteById(CurrentUser.id(), id);
         return ResponseEntity.noContent().build();
     }
 
-    public record CreateRequest(Long userId, String planName, String note, List<String[]> items) {}
+    public record CreateRequest(String planName, String note, List<String[]> items) {}
 }
+

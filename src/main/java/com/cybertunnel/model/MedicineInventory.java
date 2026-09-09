@@ -5,9 +5,11 @@ import java.time.LocalDateTime;
 
 /**
  * 药品库存表 —— 每种药当前还剩多少片
+ * 唯一约束：(user_id, medicine_name) —— 每个用户可以有同名的药，互不干扰
  */
 @Entity
-@Table(name = "medicine_inventory")
+@Table(name = "medicine_inventory",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "medicine_name"}))
 public class MedicineInventory {
 
     @Id
@@ -16,10 +18,10 @@ public class MedicineInventory {
 
     /** 用户ID */
     @Column(name = "user_id", nullable = false)
-    private Long userId = 1L;
+    private Long userId;
 
-    /** 药品名称（唯一） */
-    @Column(name = "medicine_name", nullable = false, unique = true)
+    /** 药品名称（同一用户下唯一） */
+    @Column(name = "medicine_name", nullable = false)
     private String medicineName;
 
     /** 当前库存片数 */

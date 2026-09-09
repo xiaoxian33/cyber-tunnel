@@ -13,8 +13,8 @@ import java.util.Optional;
 @Repository
 public interface MedicineInventoryRepository extends JpaRepository<MedicineInventory, Long> {
 
-    /** 按药品名查找库存 */
-    Optional<MedicineInventory> findByMedicineName(String medicineName);
+    /** 按用户 + 药品名查找库存（归属校验用） */
+    Optional<MedicineInventory> findByUserIdAndMedicineName(Long userId, String medicineName);
 
     /** 按用户查找所有库存 */
     List<MedicineInventory> findByUserId(Long userId);

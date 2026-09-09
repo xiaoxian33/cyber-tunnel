@@ -50,9 +50,12 @@ public class MedPlanService {
         return Optional.of(repository.save(plan));
     }
 
-    /** 删除方案 */
+    /** 删除方案（归属校验：只允许删本人的） */
     @Transactional
-    public void deleteById(Long id) {
+    public void deleteById(Long userId, Long id) {
+        if (repository.findByIdAndUserId(id, userId).isEmpty()) {
+            return; // 不是本人的方案 -> 不删
+        }
         repository.deleteById(id);
     }
 }

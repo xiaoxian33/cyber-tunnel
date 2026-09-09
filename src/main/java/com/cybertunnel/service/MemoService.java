@@ -30,9 +30,12 @@ public class MemoService {
         return repository.save(memo);
     }
 
-    /** 删除单条备忘录 */
+    /** 删除单条备忘录（归属校验：只允许删本人的） */
     @Transactional
-    public void deleteById(Long id) {
+    public void deleteById(Long userId, Long id) {
+        if (repository.findByIdAndUserId(id, userId).isEmpty()) {
+            return; // 不是本人的记录 -> 不删
+        }
         repository.deleteById(id);
     }
 

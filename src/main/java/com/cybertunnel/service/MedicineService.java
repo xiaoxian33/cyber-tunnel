@@ -23,10 +23,10 @@ public class MedicineService {
         return medicineRepository.findByUserId(userId);
     }
 
-    /** 按 ID 查询 */
+    /** 按 ID + 用户 查询（归属校验） */
     @Transactional(readOnly = true)
-    public Optional<Medicine> findById(Long id) {
-        return medicineRepository.findById(id);
+    public Optional<Medicine> findByIdAndUserId(Long id, Long userId) {
+        return medicineRepository.findByIdAndUserId(id, userId);
     }
 
     /** 按名称 + 用户ID 查询 */
@@ -51,20 +51,23 @@ public class MedicineService {
     }
 
     /**
-     * 调整库存
+     * 调整库存（仅限本人）
      */
     @Transactional
-    public Optional<Medicine> adjustStock(Long id, int delta) {
-        return medicineRepository.findById(id).map(medicine -> {
+    public Optional<Medicine> adjustStock(Long id, Long userId, int delta) {
+        return medicineRepository.findByIdAndUserId(id, userId).map(medicine -> {
             int newStock = Math.max(0, medicine.getStock() + delta);
             medicine.setStock(newStock);
             return medicineRepository.save(medicine);
         });
     }
 
-    /** 删除药品 */
+    /** 删除药品（归属校验：只允许删本人的） */
     @Transactional
-    public void deleteById(Long id) {
+    public void deleteById(Long id, Long userId) {
+        if (medicineRepository.findByIdAndUserId(id, userId).isEmpty()) {
+            return; // 不是本人的药 -> 不删
+        }
         medicineRepository.deleteById(id);
     }
 }
