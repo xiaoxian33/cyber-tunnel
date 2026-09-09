@@ -142,6 +142,13 @@ mvnw spring-boot:run
 
 ---
 
+## 📚 文档
+
+- 🔐 [登录态与权限安全改造记录](docs/AUTH-SECURITY.md)：从「前端传 userId」升级为「后端 token 认证」的完整思路，含面试问答提纲。
+
+---
+
+
 ## 📁 项目结构
 
 ```
