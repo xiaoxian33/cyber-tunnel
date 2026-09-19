@@ -13,7 +13,18 @@
 
 ## 截图
 
-![登录页 · 复古像素风](docs/images/login.png)
+登录页（复古像素风）：
+
+![登录页](docs/images/login.png)
+
+<details>
+<summary>展开看主页：用药记录 / 剂量风险看板 / 社区（3 张，按页面从上到下）</summary>
+
+![主页 1](docs/images/home-01.png)
+![主页 2](docs/images/home-02.png)
+![主页 3](docs/images/home-03.png)
+
+</details>
 
 ## 技术栈
 
